@@ -1,0 +1,923 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NC AI Solve-a-thon Coach & Student Guide</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @media print {
+      header, .no-print { display: none !important; }
+      .summary { font-size: 12pt; }
+      body { color: #000 !important; }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- React and Babel -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- App -->
+  <script type="text/babel">
+const {useMemo, useRef, useState, useEffect} = React;
+
+const BRAND = { primary: "#003A70", secondary: "#853275", accent: "#2FB4D2" };
+
+const STRINGS = {
+  en: {
+    appTitle: "NC AI Solve-a-thon Coach & Student Guide",
+    trackPrompt: "Which track are you completing?",
+    track1: "Track 1, Proposal",
+    track2: "Track 2, Technical or Implementation",
+    start: "Start",
+    next: "Next",
+    back: "Back",
+    approveAndContinue: "Approve and continue",
+    teamInfo: "Team and Place",
+    teamName: "Team name",
+    coachName: "Coach name",
+    coachEmail: "Coach email",
+    grades: "Grades",
+    city: "City",
+    state: "State",
+    save: "Save",
+    load: "Load",
+    reset: "Reset",
+    coachMode: "Coach mode",
+    highContrast: "High contrast",
+    spanish: "Español",
+    english: "English",
+    step_Brainstorm: "Brainstorm",
+    step_Empathize: "Empathize",
+    step_Ideate: "Ideate",
+    step_Prototype: "Prototype",
+    step_TestIterate: "Test and iterate",
+    step_Narrative: "Narrative",
+    step_Summary: "Summary",
+    issuesYouCare: "What issues do you care about in your community?",
+    addIssue: "Add issue",
+    sampleIssues: "Suggested local issues",
+    toProblemStatements: "Convert to problem statements",
+    formattedProblemStatements: "Problem statements",
+    selectOneProblem: "Select one problem statement to explore",
+    selectedProblem: "Selected problem",
+    empathyIntro: "Interview three personas one by one. Questions adapt to your selected problem.",
+    startInterviews: "Start interviews",
+    nextPersona: "Next persona",
+    previousPersona: "Previous persona",
+    finishInterviews: "Finish interviews",
+    persona: "Persona",
+    role: "Role",
+    name: "Name",
+    questions: "Questions",
+    answer: "Answer",
+    notes: "Notes",
+    sentiment: "Sentiment",
+    synthesize: "Synthesize insights",
+    synthesisTitle: "Empathy synthesis",
+    ideateIntro: "Describe your solution, the role of AI, your sources, safeguards, equity, and alignment to NC AI Guidelines.",
+    solutionName: "Solution name",
+    solutionDesc: "Solution description",
+    aiRole: "How AI helps",
+    risks: "Risks and limitations",
+    dataPrivacy: "Data, privacy, and safety",
+    equity: "Equity and access",
+    ncAlignment: "NC AI Guidelines checklist",
+    prototypeIntro: "Outline a quick prototype. Add storyboard text, optional images, or a link to a demo.",
+    storyboard: "Storyboard or steps",
+    addLink: "Add link",
+    links: "Links",
+    uploadImages: "Upload image files",
+    testIntro: "Collect quick feedback from three testers, capture insights, then plan one iteration.",
+    tester: "Tester",
+    feedback: "Feedback",
+    insight: "Insight",
+    iterationSummary: "Iteration summary",
+    narrativeIntro: "Compose the narrative for your single PDF. Live word count is shown.",
+    narrative: "Narrative",
+    wordCount: "Word count",
+    originality: "Certification of Originality",
+    originalityText: "We certify this is our original work created for the NC AI Solve-a-thon. All AI tools used are identified and credited, and all sources and artifacts are cited.",
+    aiToolsUsed: "AI tools used",
+    sourcesCited: "Sources cited",
+    reqs: "Submission requirements",
+    reqsBulletsTitle: "You must submit one PDF that includes",
+    exportSummary: "Export summary",
+    copyToClipboard: "Copy as HTML",
+    printPDF: "Print",
+    downloadHTML: "Download .html",
+    rubric: "Rubric checklist",
+    timeline: "Timeline",
+    guidelines: "Responsible AI reminders",
+    linkGuidelines: "NC AI Guidelines",
+    logoAlt: "NC AI Solve-a-thon logo",
+    approveGate: "Coach approval required to proceed",
+    teamConfirmGate: "Team confirm this step is complete",
+    credit: "Created by Vera Cubero with ChatGPT5",
+  },
+  es: {
+    appTitle: "Guía para entrenadores y estudiantes, NC AI Solve-a-thon",
+    trackPrompt: "¿Qué pista van a completar?",
+    track1: "Pista 1, Propuesta",
+    track2: "Pista 2, Técnica o Implementación",
+    start: "Comenzar",
+    next: "Siguiente",
+    back: "Atrás",
+    approveAndContinue: "Aprobar y continuar",
+    teamInfo: "Equipo y lugar",
+    teamName: "Nombre del equipo",
+    coachName: "Nombre del entrenador",
+    coachEmail: "Correo del entrenador",
+    grades: "Grados",
+    city: "Ciudad",
+    state: "Estado",
+    save: "Guardar",
+    load: "Cargar",
+    reset: "Reiniciar",
+    coachMode: "Modo entrenador",
+    highContrast: "Alto contraste",
+    spanish: "Español",
+    english: "Inglés",
+    step_Brainstorm: "Lluvia de ideas",
+    step_Empathize: "Empatizar",
+    step_Ideate: "Idear",
+    step_Prototype: "Prototipo",
+    step_TestIterate: "Probar e iterar",
+    step_Narrative: "Narrativa",
+    step_Summary: "Resumen",
+    issuesYouCare: "¿Qué problemas te importan en tu comunidad?",
+    addIssue: "Agregar tema",
+    sampleIssues: "Problemas locales sugeridos",
+    toProblemStatements: "Convertir a enunciados del problema",
+    formattedProblemStatements: "Enunciados del problema",
+    selectOneProblem: "Selecciona un enunciado del problema",
+    selectedProblem: "Problema seleccionado",
+    empathyIntro: "Entrevista a tres personas, una por una. Las preguntas se adaptan a tu problema seleccionado.",
+    startInterviews: "Empezar entrevistas",
+    nextPersona: "Siguiente persona",
+    previousPersona: "Persona anterior",
+    finishInterviews: "Terminar entrevistas",
+    persona: "Persona",
+    role: "Rol",
+    name: "Nombre",
+    questions: "Preguntas",
+    answer: "Respuesta",
+    notes: "Notas",
+    sentiment: "Sentimiento",
+    synthesize: "Sintetizar hallazgos",
+    synthesisTitle: "Síntesis de empatía",
+    ideateIntro: "Describe la solución, el papel de la IA, fuentes, salvaguardas, equidad y alineación con las Guías de IA de NC.",
+    solutionName: "Nombre de la solución",
+    solutionDesc: "Descripción de la solución",
+    aiRole: "Cómo ayuda la IA",
+    risks: "Riesgos y limitaciones",
+    dataPrivacy: "Datos, privacidad y seguridad",
+    equity: "Equidad y acceso",
+    ncAlignment: "Lista de verificación de las Guías de IA de NC",
+    prototypeIntro: "Esboza un prototipo rápido. Agrega guion gráfico, imágenes o enlace a un demo.",
+    storyboard: "Guion gráfico o pasos",
+    addLink: "Agregar enlace",
+    links: "Enlaces",
+    uploadImages: "Subir imágenes",
+    testIntro: "Recoge comentarios de tres evaluadores, registra conclusiones y planifica una iteración.",
+    tester: "Evaluador",
+    feedback: "Comentario",
+    insight: "Conclusión",
+    iterationSummary: "Resumen de la iteración",
+    narrativeIntro: "Redacta la narrativa para el PDF. Hay conteo de palabras.",
+    narrative: "Narrativa",
+    wordCount: "Conteo de palabras",
+    originality: "Certificación de originalidad",
+    originalityText: "Certificamos que este es nuestro trabajo original creado para el NC AI Solve-a-thon. Todas las herramientas de IA usadas están identificadas y acreditadas, y todas las fuentes y artefactos están citadas.",
+    aiToolsUsed: "Herramientas de IA usadas",
+    sourcesCited: "Fuentes citadas",
+    reqs: "Requisitos de entrega",
+    reqsBulletsTitle: "Debes enviar un solo PDF que incluya",
+    exportSummary: "Exportar resumen",
+    copyToClipboard: "Copiar como HTML",
+    printPDF: "Imprimir",
+    downloadHTML: "Descargar .html",
+    rubric: "Lista de verificación del rúbrica",
+    timeline: "Cronograma",
+    guidelines: "Recordatorios de uso responsable de IA",
+    linkGuidelines: "Guías de IA de NC",
+    logoAlt: "Logotipo del NC AI Solve-a-thon",
+    approveGate: "Aprobación del entrenador requerida para continuar",
+    teamConfirmGate: "El equipo confirma que esta etapa está completa",
+    credit: "Creado por Vera Cubero con ChatGPT5",
+  }
+};
+
+const RUBRIC_TRACK1 = [
+  {label: "Problem Definition and Community Relevance", points: 15},
+  {label: "Alignment to NC AI Guidelines", points: 10},
+  {label: "AI Application Plan", points: 20},
+  {label: "Research and Accuracy", points: 20},
+  {label: "Process and Development", points: 15},
+  {label: "Originality and Creativity", points: 10},
+  {label: "Use and Validation of AI Concepts", points: 10},
+];
+const RUBRIC_TRACK2 = [
+  {label: "Problem Identification and Impact", points: 10},
+  {label: "Alignment to NC AI Guidelines", points: 10},
+  {label: "Technical Implementation", points: 20},
+  {label: "Process and Development", points: 15},
+  {label: "Use of AI and Validation", points: 20},
+  {label: "Creativity and User Value", points: 15},
+  {label: "Communication and Demo Quality", points: 10},
+];
+
+const REQUIREMENTS = [
+  "One PDF only",
+  "Maximum 10 pages",
+  "Maximum 50 MB",
+  "Minimum 12 point font",
+  "Narrative 500 words or more",
+  "Poster link for Track 1, Video or demo link for Track 2",
+  "Certification of Originality, AI tools and sources credited",
+];
+
+const TIMELINE = [
+  {date: "Oct 6, 2025", label: "Registration deadline"},
+  {date: "Oct 27, 2025", label: "Proposals due"},
+  {date: "Nov 24, 2025", label: "NC Virtual Pitch Contest, prepare a 5 minute pitch"},
+  {date: "Feb 11, 2026", label: "NC AI Student Summit, invited teams pitch and showcase"},
+];
+
+const NC_GUIDELINE_CHECKS = [
+  "No personal or sensitive data in prompts or uploads",
+  "Verify facts with credible sources",
+  "Cite all sources and artifacts",
+  "Disclose how AI tools were used",
+  "Keep a human in the loop for all decisions",
+  "Design for accessibility and equity",
+];
+
+const SUGGESTION_TOPICS = [
+  "Public transit reliability and safety",
+  "After school food access",
+  "Opioid awareness and prevention",
+  "Wildfire smoke alerts and air quality",
+  "Flooding and storm readiness",
+  "Career pathways and internships",
+  "Digital wellness and social media stress",
+  "School traffic and bus routing",
+  "Local small business visibility",
+  "Parks and greenway access",
+];
+
+function useLocalStorage(key, initial) {
+  const [val, setVal] = React.useState(() => {
+    try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : initial; } catch { return initial; }
+  });
+  React.useEffect(() => { try { localStorage.setItem(key, JSON.stringify(val)); } catch {} }, [key, val]);
+  return [val, setVal];
+}
+
+function Section({title, children}) {
+  return (
+    <section className="mb-6">
+      <h3 className="text-xl font-semibold mb-3" style={{color: BRAND.primary}}>{title}</h3>
+      <div className="bg-white rounded-2xl shadow p-4 border" style={{borderColor: BRAND.accent}}>
+        {children}
+      </div>
+    </section>
+  );
+}
+
+function Badge({children}){
+  return <span className="inline-block text-xs px-2 py-1 rounded-full mr-2 mb-2 border" style={{borderColor: BRAND.accent, color: BRAND.primary}}>{children}</span>;
+}
+
+function Stepper({steps, current, setCurrent}){
+  return (
+    <div className="flex flex-wrap items-center gap-2 my-4" aria-label="Steps">
+      {steps.map((s, idx) => (
+        <button key={s.key}
+                onClick={()=> setCurrent(idx)}
+                className={`px-3 py-2 rounded-full text-sm border ${idx===current?"bg-white":"bg-slate-50"}`}
+                style={{borderColor: BRAND.primary, color: BRAND.primary}}
+                aria-current={idx===current?"step":undefined}>
+          {idx+1}. {s.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function Gate({coachMode, approved, setApproved, strings}){
+  return (
+    <div className="flex items-center gap-2 mt-4">
+      <input id="gate" type="checkbox" className="h-5 w-5" checked={approved} onChange={(e)=>setApproved(e.target.checked)} />
+      <label htmlFor="gate" className="text-sm">
+        {coachMode ? strings.approveGate : strings.teamConfirmGate}
+      </label>
+    </div>
+  );
+}
+
+function wordCount(text){
+  return text.trim().split(/\s+/).filter(Boolean).length;
+}
+
+// Role helper from keywords
+function chooseStakeholderRole(problem){
+  const p = problem.toLowerCase();
+  if(p.match(/bus|traffic|crosswalk|transit|route/)) return "Transportation coordinator";
+  if(p.match(/air|smoke|wildfire|asthma|pollution/)) return "Public health nurse";
+  if(p.match(/food|lunch|pantry|hunger|nutrition/)) return "Food pantry coordinator";
+  if(p.match(/internship|career|job|workforce/)) return "Career services counselor";
+  if(p.match(/flood|storm|hurricane|rain/)) return "Emergency management lead";
+  if(p.match(/park|greenway|recreation/)) return "Parks and recreation planner";
+  if(p.match(/business|shop|store|merchant/)) return "Small business owner";
+  return "City planner";
+}
+
+function generatePersonasFromProblem(problem, place){
+  const where = place && place.trim() ? `in ${place}` : "in our community";
+  return [
+    {role:`Student affected ${where}`, name:"", questions:[
+      `What is the hardest part of this problem for you, and when do you notice it most?`,
+      `What workarounds or supports do you use now, and what gets in the way?`,
+      `What would a good outcome look like if we reduced this problem?`
+    ], answers:["","",""], notes:"", sentiment:""},
+    {role:`Caregiver or community member ${where}`, name:"", questions:[
+      `Where does this problem show up for families or neighbors, and who is most affected?`,
+      `What constraints, like time, money, transport, or information, make this harder?`,
+      `How would you know a solution is working in everyday life?`
+    ], answers:["","",""], notes:"", sentiment:""},
+    {role: chooseStakeholderRole(problem) + ` ${where}`, name:"", questions:[
+      `From your role, what constraints, policies, or resources shape this problem?`,
+      `What data or signals would help you decide what to try first?`,
+      `If we pilot a solution, what is the smallest safe experiment you would support?`
+    ], answers:["","",""], notes:"", sentiment:""},
+  ];
+}
+
+function synthesizeEmpathy(personas, problem, place){
+  const needs = personas.map(p=>p.answers[0]).filter(Boolean).slice(0,3).join("; ");
+  const constraints = personas.map(p=>p.answers[1]).filter(Boolean).slice(0,3).join("; ");
+  const success = personas.map(p=>p.answers[2]).filter(Boolean).slice(0,3).join("; ");
+  const where = place && place.trim()? `${place}` : "the community";
+  return `We interviewed ${personas.length} personas about "${problem}" in ${where}. Key needs we heard: ${needs}. Constraints and current barriers: ${constraints}. Signs of success to watch: ${success}.`;
+}
+
+function App(){
+  const [lang, setLang] = useLocalStorage("solve_lang", "en");
+  const t = STRINGS[lang];
+  const [coachMode, setCoachMode] = useLocalStorage("solve_coach", false);
+  const [contrast, setContrast] = useLocalStorage("solve_contrast", false);
+
+  const [track, setTrack] = useLocalStorage("solve_track", "");
+  const [team, setTeam] = useLocalStorage("solve_team", {name:"", coachName:"", coachEmail:"", grades:"", city:"", state:""});
+  const [issues, setIssues] = useLocalStorage("solve_issues", []);
+  const [problemStatements, setProblemStatements] = useLocalStorage("solve_ps", []);
+  const [selectedProblemIndex, setSelectedProblemIndex] = useLocalStorage("solve_selected_idx", null);
+  const selectedProblem = React.useMemo(()=> selectedProblemIndex!=null? problemStatements[selectedProblemIndex] : "", [selectedProblemIndex, problemStatements]);
+  const [aiSuggestions, setAiSuggestions] = useLocalStorage("solve_suggest", []);
+  const [personas, setPersonas] = useLocalStorage("solve_personas", []);
+  const [activePersona, setActivePersona] = useLocalStorage("solve_active_persona", 0);
+  const [synthesis, setSynthesis] = useLocalStorage("solve_synthesis", "");
+
+  const [idea, setIdea] = useLocalStorage("solve_idea", {solutionName:"", solutionDesc:"", aiRole:"", risks:"", dataPrivacy:"", equity:"", ncAlignment: NC_GUIDELINE_CHECKS.map(x=>({label:x, ok:false}))});
+  const [proto, setProto] = useLocalStorage("solve_proto", {storyboard:"", links:[], images:[]});
+  const [testers, setTesters] = useLocalStorage("solve_testers", [
+    {name:"", role:"Student", feedback:"", insight:""},
+    {name:"", role:"Caregiver", feedback:"", insight:""},
+    {name:"", role:"Stakeholder", feedback:"", insight:""},
+  ]);
+  const [iteration, setIteration] = useLocalStorage("solve_iteration", "");
+  const [narrative, setNarrative] = useLocalStorage("solve_narr", "");
+  const [orig, setOrig] = useLocalStorage("solve_orig", {text:"", tools:"", sources:""});
+  const [rubric1, setRubric1] = useLocalStorage("solve_r1", RUBRIC_TRACK1.map(r=>({label:r.label, points:r.points, ok:false})));
+  const [rubric2, setRubric2] = useLocalStorage("solve_r2", RUBRIC_TRACK2.map(r=>({label:r.label, points:r.points, ok:false})));
+
+  const [current, setCurrent] = useLocalStorage("solve_step", 0);
+  const [approved, setApproved] = React.useState(false);
+
+  React.useEffect(()=>{ setApproved(false); }, [current]);
+
+  const steps = React.useMemo(()=>{
+    const base = [
+      {key:"brainstorm", label: t.step_Brainstorm},
+      {key:"empathize", label: t.step_Empathize},
+      {key:"ideate", label: t.step_Ideate},
+    ];
+    if(track === "2") base.push({key:"prototype", label: t.step_Prototype}, {key:"test", label: t.step_TestIterate});
+    base.push({key:"narrative", label: t.step_Narrative}, {key:"summary", label: t.step_Summary});
+    return base;
+  }, [track, t.step_Brainstorm, t.step_Empathize, t.step_Ideate, t.step_Prototype, t.step_TestIterate, t.step_Narrative, t.step_Summary]);
+
+  function addIssue(val){ if(!val) return; setIssues([...issues, val]); }
+  function removeIssue(idx){ setIssues(issues.filter((_,i)=>i!==idx)); }
+
+  function generateSuggestions(){
+    const base = SUGGESTION_TOPICS.map(s => team.city && team.state ? `${s} in ${team.city}, ${team.state}` : s);
+    const picks = base.slice(0, 6);
+    setAiSuggestions(picks);
+  }
+
+  function convertToProblemStatements(){
+    const list = [...issues];
+    const formatted = list.map(txt => {
+      const who = "people";
+      const impact = "negative outcomes";
+      const place = team.city && team.state ? `${team.city}, ${team.state}` : "our community";
+      return `In ${place}, ${who} experience ${txt}, which leads to ${impact}. We will explore how AI could help reduce this problem.`;
+    });
+    setProblemStatements(formatted);
+    setSelectedProblemIndex(null);
+  }
+
+  // When entering Empathize, generate personas from selected problem
+  React.useEffect(()=>{
+    if(steps[current]?.key === "empathize" && selectedProblem){
+      const place = [team.city, team.state].filter(Boolean).join(", ");
+      const generated = generatePersonasFromProblem(selectedProblem, place);
+      setPersonas(generated);
+      setActivePersona(0);
+      setSynthesis("");
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [current, selectedProblem]);
+
+  function allInterviewQsAnswered(p){
+    return p.answers && p.answers.length===p.questions.length && p.answers.every(a=>a && a.trim().length>0);
+  }
+
+  function canProceedFromEmpathize(){
+    const ok = personas.length===3 && personas.every(allInterviewQsAnswered) && synthesis.trim().length>0;
+    return (ok && (approved || !coachMode));
+  }
+
+  const summaryRef = React.useRef(null);
+
+  function copySummaryHTML(){
+    if(!summaryRef.current) return;
+    const html = summaryRef.current.innerHTML;
+    navigator.clipboard.writeText(`<div>${html}</div>`).catch(()=>{});
+    alert("Copied as HTML. Paste into a Google Doc or site.");
+  }
+
+  function downloadHTML(){
+    if(!summaryRef.current) return;
+    const html = `<!doctype html><html><head><meta charset='utf-8'><title>NC AI Solve-a-thon Summary</title></head><body>${summaryRef.current.innerHTML}</body></html>`;
+    const blob = new Blob([html], {type:"text/html"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "solve-a-thon-summary.html"; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function resetAll(){
+    if(confirm("Start over? This clears saved progress.")){
+      localStorage.clear();
+      window.location.reload();
+    }
+  }
+
+  const wc = wordCount(narrative);
+
+  return (
+    <div className={"min-h-screen p-4 md:p-8 " + (contrast?"bg-black text-white":"bg-slate-100 text-slate-900")} style={{fontFamily:"ui-sans-serif, system-ui"}}>
+      <style>{`
+        :root{ --brand-primary:${BRAND.primary}; --brand-secondary:${BRAND.secondary}; --brand-accent:${BRAND.accent}; }
+        .btn{ padding:0.55rem 0.9rem; border-radius:9999px; border:1px solid var(--brand-primary); color:var(--brand-primary); background:white; }
+        .btn-primary{ background: var(--brand-primary); color:white; border-color: var(--brand-primary); }
+        .btn-accent{ background: var(--brand-accent); color:#003A70; border-color: var(--brand-accent); }
+        .btn:disabled{ opacity:.6; cursor:not-allowed; }
+        .headerCard{ background:linear-gradient(135deg, var(--brand-primary), var(--brand-secondary)); color:white; }
+        .link{ color: var(--brand-secondary); text-decoration: underline; }
+        .summary h3{ color: var(--brand-primary); }
+        .radio{ accent-color: ${BRAND.secondary}; }
+      `}</style>
+
+      <a href="#main" className="sr-only focus:not-sr-only">Skip to content</a>
+
+      <header className="headerCard rounded-2xl p-5 shadow">
+        <div className="flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-6">
+          <img src="https://github.com/veracubero-art/my-app-assets/blob/main/NC_AI_SolveAThonWide.png?raw=true" alt={t.logoAlt} className="h-12 w-auto"/>
+          <div className="flex-1">
+            <h1 className="text-2xl md:text-3xl font-bold">{t.appTitle}</h1>
+            <p className="text-sm opacity-90">Guided, place based, human in the loop. Privacy friendly, runs in the browser.</p>
+          </div>
+          <div className="flex items-center gap-2 no-print">
+            <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={coachMode} onChange={(e)=>setCoachMode(e.target.checked)} /> {t.coachMode}</label>
+            <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={contrast} onChange={(e)=>setContrast(e.target.checked)} /> {t.highContrast}</label>
+            <select value={lang} onChange={(e)=>setLang(e.target.value)} className="btn">
+              <option value="en">{t.english}</option>
+              <option value="es">{t.spanish}</option>
+            </select>
+          </div>
+        </div>
+      </header>
+
+      <main id="main" className="mt-6">
+        {track === "" ? (
+          <div className="bg-white rounded-2xl shadow p-6 border" style={{borderColor: BRAND.accent}}>
+            <h2 className="text-xl font-semibold mb-2" style={{color: BRAND.primary}}>{t.trackPrompt}</h2>
+            <div className="flex flex-col md:flex-row gap-4">
+              <button className="btn-accent" onClick={()=>setTrack("1")}>{t.track1}</button>
+              <button className="btn-accent" onClick={()=>setTrack("2")}>{t.track2}</button>
+            </div>
+            <Section title={t.teamInfo}>
+              <div className="grid md:grid-cols-3 gap-3">
+                <input className="border rounded p-2" placeholder={t.teamName} value={team.name} onChange={(e)=>setTeam({...team, name:e.target.value})} />
+                <input className="border rounded p-2" placeholder={t.coachName} value={team.coachName} onChange={(e)=>setTeam({...team, coachName:e.target.value})} />
+                <input className="border rounded p-2" placeholder={t.coachEmail} value={team.coachEmail} onChange={(e)=>setTeam({...team, coachEmail:e.target.value})} />
+                <input className="border rounded p-2" placeholder={t.grades} value={team.grades} onChange={(e)=>setTeam({...team, grades:e.target.value})} />
+                <input className="border rounded p-2" placeholder={t.city} value={team.city} onChange={(e)=>setTeam({...team, city:e.target.value})} />
+                <input className="border rounded p-2" placeholder={t.state} value={team.state} onChange={(e)=>setTeam({...team, state:e.target.value})} />
+              </div>
+              <div className="mt-4 flex gap-2 no-print">
+                <button className="btn" onClick={()=>alert("Progress is auto saved to this browser. Use Load on this device later.")}>{t.save}</button>
+                <button className="btn" onClick={()=>alert("Your saved work will load automatically on this device. If not, it may have been cleared.")}>{t.load}</button>
+                <button className="btn" onClick={resetAll}>{t.reset}</button>
+              </div>
+            </Section>
+            <Section title="About, links, and requirements">
+              <div className="flex flex-wrap items-center gap-2 mb-2">
+                {REQUIREMENTS.map((r,i)=> <Badge key={i}>{r}</Badge>)}
+              </div>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <h4 className="font-semibold mb-1" style={{color: BRAND.primary}}>{t.timeline}</h4>
+                  <ul className="list-disc pl-6">
+                    {TIMELINE.map((x,i)=> <li key={i}><span className="font-medium">{x.date}:</span> {x.label}</li>)}
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-1" style={{color: BRAND.primary}}>{t.guidelines}</h4>
+                  <ul className="list-disc pl-6">
+                    {NC_GUIDELINE_CHECKS.map((c,i)=> <li key={i}>{c}</li>)}
+                  </ul>
+                  <p className="mt-2 text-sm">See <a className="underline" style={{color: BRAND.secondary}} href="https://go.ncdpi.gov/AI_Guidelines" target="_blank" rel="noreferrer">{t.linkGuidelines}</a></p>
+                </div>
+              </div>
+            </Section>
+          </div>
+        ) : (
+          <div className="bg-white rounded-2xl shadow p-6 border" style={{borderColor: BRAND.accent}}>
+            <Stepper steps={steps} current={current} setCurrent={setCurrent} />
+
+            {steps[current].key === "brainstorm" && (
+              <div>
+                <Section title={t.step_Brainstorm}>
+                  <p className="mb-3">{t.issuesYouCare}</p>
+                  <IssueEditor issues={issues} addIssue={addIssue} removeIssue={removeIssue} t={t} />
+                  <div className="mt-3 flex gap-2">
+                    <button className="btn" onClick={generateSuggestions}>{t.sampleIssues}</button>
+                    <button className="btn" onClick={convertToProblemStatements}>{t.toProblemStatements}</button>
+                  </div>
+                  {aiSuggestions.length>0 && (
+                    <div className="mt-4">
+                      <h4 className="font-semibold mb-2" style={{color: BRAND.primary}}>{t.sampleIssues}</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {aiSuggestions.map((s,i)=> <Badge key={i}>{s}</Badge>)}
+                      </div>
+                    </div>
+                  )}
+                  {problemStatements.length>0 && (
+                    <div className="mt-6">
+                      <h4 className="font-semibold mb-2" style={{color: BRAND.primary}}>{t.formattedProblemStatements}</h4>
+                      <p className="text-sm mb-1">{t.selectOneProblem}</p>
+                      <ul className="space-y-2">
+                        {problemStatements.map((p,i)=> (
+                          <li key={i} className="flex items-start gap-2">
+                            <input className="mt-1" type="radio" name="psel" checked={selectedProblemIndex===i} onChange={()=>setSelectedProblemIndex(i)} />
+                            <span>{p}</span>
+                          </li>
+                        ))}
+                      </ul>
+                      {selectedProblem && <p className="mt-3 text-sm"><strong>{t.selectedProblem}:</strong> {selectedProblem}</p>}
+                    </div>
+                  )}
+                  <Gate coachMode={coachMode} approved={approved} setApproved={setApproved} strings={t} />
+                </Section>
+                <NavButtons t={t} current={current} setCurrent={setCurrent} canNext={(approved || !coachMode) && selectedProblemIndex!==null} />
+              </div>
+            )}
+
+            {steps[current].key === "empathize" && (
+              <div>
+                <Section title={t.step_Empathize}>
+                  <p className="mb-3">{t.empathyIntro}</p>
+                  {!selectedProblem && <p className="text-sm">Select a problem in Step 1 first.</p>}
+                  {selectedProblem && personas.length===3 && (
+                    <div>
+                      <div className="mb-2 text-sm"><strong>{t.selectedProblem}:</strong> {selectedProblem}</div>
+                      <InterviewPager personas={personas} setPersonas={setPersonas} activePersona={activePersona} setActivePersona={setActivePersona} t={t} />
+                      <div className="mt-4 flex gap-2">
+                        <button className="btn" onClick={()=>{
+                          const place = [team.city, team.state].filter(Boolean).join(", ");
+                          const syn = synthesizeEmpathy(personas, selectedProblem, place);
+                          setSynthesis(syn);
+                        }}>{t.synthesize}</button>
+                        {synthesis && <span className="text-sm" role="status">{t.synthesisTitle} ready</span>}
+                      </div>
+                      {synthesis && (
+                        <div className="mt-3">
+                          <label className="text-sm block mb-1">{t.synthesisTitle}</label>
+                          <textarea className="border rounded p-2 w-full" rows={4} value={synthesis} onChange={(e)=>setSynthesis(e.target.value)}></textarea>
+                        </div>
+                      )}
+                  </div>
+                  )}
+                  <Gate coachMode={coachMode} approved={approved} setApproved={setApproved} strings={t} />
+                </Section>
+                <NavButtons t={t} current={current} setCurrent={setCurrent} canNext={canProceedFromEmpathize()} />
+              </div>
+            )}
+
+            {steps[current].key === "ideate" && (
+              <div>
+                <Section title={t.step_Ideate}>
+                  <p className="mb-3">{t.ideateIntro}</p>
+                  {selectedProblem && <p className="text-sm mb-2"><strong>{t.selectedProblem}:</strong> {selectedProblem}</p>}
+                  <div className="grid md:grid-cols-2 gap-3">
+                    <input className="border rounded p-2" placeholder={t.solutionName} value={idea.solutionName} onChange={(e)=>setIdea({...idea, solutionName:e.target.value})} />
+                    <input className="border rounded p-2" placeholder="Link to working notes or repo, optional" value={(proto.links[0]||"")} onChange={()=>{}} readOnly/>
+                    <textarea className="border rounded p-2 md:col-span-2" rows={4} placeholder={t.solutionDesc} value={idea.solutionDesc} onChange={(e)=>setIdea({...idea, solutionDesc:e.target.value})}></textarea>
+                    <textarea className="border rounded p-2" rows={4} placeholder={t.aiRole} value={idea.aiRole} onChange={(e)=>setIdea({...idea, aiRole:e.target.value})}></textarea>
+                    <textarea className="border rounded p-2" rows={4} placeholder={t.risks} value={idea.risks} onChange={(e)=>setIdea({...idea, risks:e.target.value})}></textarea>
+                    <textarea className="border rounded p-2" rows={4} placeholder={t.dataPrivacy} value={idea.dataPrivacy} onChange={(e)=>setIdea({...idea, dataPrivacy:e.target.value})}></textarea>
+                    <textarea className="border rounded p-2" rows={4} placeholder={t.equity} value={idea.equity} onChange={(e)=>setIdea({...idea, equity:e.target.value})}></textarea>
+                  </div>
+                  <div className="mt-4">
+                    <h4 className="font-semibold mb-2" style={{color: BRAND.primary}}>{t.ncAlignment}</h4>
+                    <div className="grid md:grid-cols-2 gap-2">
+                      {idea.ncAlignment.map((c,idx)=> (
+                        <label key={idx} className="flex items-center gap-2 text-sm border rounded p-2">
+                          <input type="checkbox" checked={c.ok} onChange={(e)=>{
+                            const next = [...idea.ncAlignment]; next[idx] = {...c, ok:e.target.checked}; setIdea({...idea, ncAlignment:next});
+                          }} />
+                          <span>{c.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  <Gate coachMode={coachMode} approved={approved} setApproved={setApproved} strings={t} />
+                </Section>
+                <NavButtons t={t} current={current} setCurrent={setCurrent} canNext={approved || !coachMode} />
+              </div>
+            )}
+
+            {steps[current].key === "prototype" && (
+              <div>
+                <Section title={t.step_Prototype}>
+                  <p className="mb-3">{t.prototypeIntro}</p>
+                  <textarea className="border rounded p-2 w-full" rows={5} placeholder={t.storyboard} value={proto.storyboard} onChange={(e)=>setProto({...proto, storyboard:e.target.value})}></textarea>
+                  <div className="mt-3 flex items-center gap-2">
+                    <button className="btn" onClick={addLink}>{t.addLink}</button>
+                    <span className="text-sm">{t.links}: {proto.links.length>0? proto.links.join(", ") : "None"}</span>
+                  </div>
+                  <div className="mt-3">
+                    <label className="block text-sm mb-1">{t.uploadImages}</label>
+                    <input type="file" accept="image/*" multiple onChange={(e)=>{
+                      const files = Array.from(e.target.files || []);
+                      files.forEach(f => {
+                        const reader = new FileReader();
+                        reader.onload = () => setProto(p => ({...p, images:[...p.images, reader.result]}));
+                        reader.readAsDataURL(f);
+                      });
+                    }} />
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2">
+                      {proto.images.map((src,i)=> <img key={i} src={src} alt={"upload "+(i+1)} className="rounded border" />)}
+                    </div>
+                  </div>
+                  <Gate coachMode={coachMode} approved={approved} setApproved={setApproved} strings={t} />
+                </Section>
+                <NavButtons t={t} current={current} setCurrent={setCurrent} canNext={approved || !coachMode} />
+              </div>
+            )}
+
+            {steps[current].key === "test" && (
+              <div>
+                <Section title={t.step_TestIterate}>
+                  <p className="mb-3">{t.testIntro}</p>
+                  <div className="grid md:grid-cols-3 gap-3">
+                    {testers.map((u,idx)=> (
+                      <div key={idx} className="rounded-xl border p-3">
+                        <div className="text-sm mb-1">{t.tester} {idx+1}</div>
+                        <input className="border rounded p-2 w-full mb-2" placeholder={t.name} value={u.name} onChange={(e)=>updateTester(idx,{...u, name:e.target.value})} />
+                        <input className="border rounded p-2 w-full mb-2" placeholder={t.role} value={u.role} onChange={(e)=>updateTester(idx,{...u, role:e.target.value})} />
+                        <textarea className="border rounded p-2 w-full mb-2" rows={4} placeholder={t.feedback} value={u.feedback} onChange={(e)=>updateTester(idx,{...u, feedback:e.target.value})}></textarea>
+                        <input className="border rounded p-2 w-full" placeholder={t.insight} value={u.insight} onChange={(e)=>updateTester(idx,{...u, insight:e.target.value})} />
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-3">
+                    <label className="block text-sm mb-1">{t.iterationSummary}</label>
+                    <textarea className="border rounded p-2 w-full" rows={4} value={iteration} onChange={(e)=>setIteration(e.target.value)}></textarea>
+                  </div>
+                  <Gate coachMode={coachMode} approved={approved} setApproved={setApproved} strings={t} />
+                </Section>
+                <NavButtons t={t} current={current} setCurrent={setCurrent} canNext={approved || !coachMode} />
+              </div>
+            )}
+
+            {steps[current].key === "narrative" && (
+              <div>
+                <Section title={t.step_Narrative}>
+                  <p className="mb-3">{t.narrativeIntro}</p>
+                  {selectedProblem && <p className="text-sm mb-2"><strong>{t.selectedProblem}:</strong> {selectedProblem}</p>}
+                  {synthesis && (
+                    <Section title={t.synthesisTitle}>
+                      <textarea className="border rounded p-2 w-full" rows={4} value={synthesis} onChange={(e)=>setSynthesis(e.target.value)}></textarea>
+                    </Section>
+                  )}
+                  <textarea className="border rounded p-2 w-full" rows={10} value={narrative} onChange={(e)=>setNarrative(e.target.value)} placeholder={t.narrative}></textarea>
+                  <div className="mt-2 text-sm"><strong>{t.wordCount}:</strong> {wordCount(narrative)}</div>
+                  <Section title={t.originality}>
+                    <textarea className="border rounded p-2 w-full mb-2" rows={3} value={orig.text || t.originalityText} onChange={(e)=>setOrig({...orig, text:e.target.value})}></textarea>
+                    <input className="border rounded p-2 w-full mb-2" placeholder={t.aiToolsUsed} value={orig.tools} onChange={(e)=>setOrig({...orig, tools:e.target.value})} />
+                    <textarea className="border rounded p-2 w-full" rows={3} placeholder={t.sourcesCited} value={orig.sources} onChange={(e)=>setOrig({...orig, sources:e.target.value})}></textarea>
+                  </Section>
+                  <Gate coachMode={coachMode} approved={approved} setApproved={setApproved} strings={t} />
+                </Section>
+                <Section title={t.rubric}>
+                  {(track==="1"? rubric1 : rubric2).map((r,idx)=> (
+                    <label key={idx} className="flex items-center gap-2 text-sm border rounded p-2 mb-2">
+                      <input type="checkbox" checked={track==="1"? rubric1[idx].ok : rubric2[idx].ok} onChange={(e)=>{
+                        if(track==="1"){ const next=[...rubric1]; next[idx] = {...next[idx], ok:e.target.checked}; setRubric1(next); }
+                        else { const next=[...rubric2]; next[idx] = {...next[idx], ok:e.target.checked}; setRubric2(next); }
+                      }} />
+                      <span className="flex-1">{r.label} <span className="opacity-70">({r.points} pts)</span></span>
+                    </label>
+                  ))}
+                </Section>
+                <NavButtons t={t} current={current} setCurrent={setCurrent} canNext={approved || !coachMode} />
+              </div>
+            )}
+
+            {steps[current].key === "summary" && (
+              <div>
+                <Section title={t.step_Summary}>
+                  <div className="flex flex-wrap gap-2 mb-3 no-print">
+                    <button className="btn" onClick={copySummaryHTML}>{t.copyToClipboard}</button>
+                    <button className="btn" onClick={()=>window.print()}>{t.printPDF}</button>
+                    <button className="btn" onClick={downloadHTML}>{t.downloadHTML}</button>
+                  </div>
+                  <div ref={summaryRef} className="summary prose max-w-none">
+                    <h2 style={{color: BRAND.primary}}>{t.appTitle}</h2>
+                    <p><strong>Track:</strong> {track==="1"? t.track1 : t.track2}</p>
+                    <p><strong>{t.teamInfo}:</strong> {team.name || ""} • {team.grades || ""} • {team.city || ""}, {team.state || ""} • Coach {team.coachName || ""} {team.coachEmail?`<${team.coachEmail}>`:""}</p>
+                    {selectedProblem && (<p><strong>{t.selectedProblem}:</strong> {selectedProblem}</p>)}
+                    <h3>{t.step_Brainstorm}</h3>
+                    <ul>{issues.map((x,i)=><li key={i}>{x}</li>)}</ul>
+                    <h4>{t.formattedProblemStatements}</h4>
+                    <ul>{problemStatements.map((x,i)=><li key={i}>{x}</li>)}</ul>
+                    <h3>{t.step_Empathize}</h3>
+                    {personas.map((p,i)=> (
+                      <div key={i}>
+                        <p><strong>{t.persona} {i+1}:</strong> {p.role} {p.name?`- ${p.name}`:""}</p>
+                        <ol className="list-decimal pl-6">
+                          {p.questions.map((q,qi)=> (<li key={qi}><em>{q}</em><br/>{p.answers?.[qi]||""}</li>))}
+                        </ol>
+                        {p.notes && <p><strong>{t.notes}:</strong> {p.notes}</p>}
+                        {p.sentiment && <p><strong>{t.sentiment}:</strong> {p.sentiment}</p>}
+                      </div>
+                    ))}
+                    {synthesis && <><h4>{t.synthesisTitle}</h4><p>{synthesis}</p></>}
+                    <h3>{t.step_Ideate}</h3>
+                    <p><strong>{t.solutionName}:</strong> {idea.solutionName}</p>
+                    <p><strong>{t.solutionDesc}:</strong> {idea.solutionDesc}</p>
+                    <p><strong>{t.aiRole}:</strong> {idea.aiRole}</p>
+                    <p><strong>{t.risks}:</strong> {idea.risks}</p>
+                    <p><strong>{t.dataPrivacy}:</strong> {idea.dataPrivacy}</p>
+                    <p><strong>{t.equity}:</strong> {idea.equity}</p>
+                    <p><strong>{t.ncAlignment}:</strong> {idea.ncAlignment.filter(x=>x.ok).map(x=>x.label).join(", ")}</p>
+                    {track==="2" && (
+                      <>
+                        <h3>{t.step_Prototype}</h3>
+                        <p>{t.storyboard}: {proto.storyboard}</p>
+                        <p>{t.links}: {proto.links.join(", ")}</p>
+                        {proto.images.length>0 && <div className="grid grid-cols-2 gap-2">{proto.images.map((src,i)=> <img key={i} src={src} alt={"upload "+(i+1)} className="rounded border" />)}</div>}
+                        <h3>{t.step_TestIterate}</h3>
+                        {testers.map((u,i)=> (
+                          <div key={i}><p><strong>{t.tester} {i+1}:</strong> {u.name} • {u.role}</p><p>{t.feedback}: {u.feedback}</p><p>{t.insight}: {u.insight}</p></div>
+                        ))}
+                        <p><strong>{t.iterationSummary}:</strong> {iteration}</p>
+                      </>
+                    )}
+                    <h3>{t.step_Narrative}</h3>
+                    <p><em>{t.wordCount}: {wordCount(narrative)}</em></p>
+                    <div>{narrative}</div>
+                    <h3>{t.originality}</h3>
+                    <p>{orig.text || t.originalityText}</p>
+                    <p><strong>{t.aiToolsUsed}:</strong> {orig.tools}</p>
+                    <p><strong>{t.sourcesCited}:</strong> {orig.sources}</p>
+                    <h3>{t.reqs}</h3>
+                    <ul>
+                      {REQUIREMENTS.map((r,i)=> <li key={i}>{r}</li>)}
+                    </ul>
+                    <h3>{t.rubric}</h3>
+                    <ul>
+                      {(track==="1"? RUBRIC_TRACK1 : RUBRIC_TRACK2).map((r,i)=> <li key={i}>{r.label}</li>)}
+                    </ul>
+                    <h3>{t.timeline}</h3>
+                    <ul>{TIMELINE.map((x,i)=> <li key={i}><strong>{x.date}</strong> {x.label}</li>)}</ul>
+                    <p className="mt-4 text-sm">See <a className="underline" style={{color: BRAND.secondary}} href="https://go.ncdpi.gov/AI_Guidelines" target="_blank" rel="noreferrer">NC AI Guidelines</a>. Judges will only open links in your PDF and links must not require a password.</p>
+                    <p className="mt-6 text-xs opacity-80">{t.credit}</p>
+                  </div>
+                </Section>
+              </div>
+            )}
+          </div>
+        )}
+      </main>
+
+      <footer className="mt-6 text-center text-xs opacity-80">
+        <p>{t.credit}</p>
+      </footer>
+    </div>
+  );
+
+  function addLink(){
+    const url = prompt("Add a URL");
+    if(url){ setProto({...proto, links:[...proto.links, url]}); }
+  }
+  function updateTester(idx, next){ const copy=[...testers]; copy[idx]=next; setTesters(copy); }
+}
+
+function IssueEditor({issues, addIssue, removeIssue, t}){
+  const [draft, setDraft] = React.useState(\"\");
+  return (
+    <div>
+      <div className=\"flex gap-2\">
+        <input className=\"border rounded p-2 flex-1\" value={draft} onChange={(e)=>setDraft(e.target.value)} placeholder=\"Ex: Safe crosswalks near schools\" />
+        <button className=\"btn\" onClick={()=>{ addIssue(draft); setDraft(\"\"); }}>{t.addIssue}</button>
+      </div>
+      {issues.length>0 && (
+        <ul className=\"mt-3 list-disc pl-6\">
+          {issues.map((x,i)=> (
+            <li key={i} className=\"flex items-center gap-2\">
+              <span className=\"flex-1\">{x}</span>
+              <button className=\"btn\" onClick={()=>removeIssue(i)}>×</button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function InterviewPager({personas, setPersonas, activePersona, setActivePersona, t}){
+  const p = personas[activePersona];
+  function updateAnswer(qi, val){
+    const copy = personas.map((pp, idx) => idx===activePersona? {...pp, answers: pp.answers.map((a,i)=> i===qi? val : a)} : pp);
+    setPersonas(copy);
+  }
+  function updateNotes(val){
+    const copy = personas.map((pp, idx) => idx===activePersona? {...pp, notes: val} : pp);
+    setPersonas(copy);
+  }
+  function updateSentiment(val){
+    const copy = personas.map((pp, idx) => idx===activePersona? {...pp, sentiment: val} : pp);
+    setPersonas(copy);
+  }
+  const allAnswered = p.answers.every(a=>a && a.trim().length>0);
+  return (
+    <div className=\"border rounded-xl p-4\">
+      <div className=\"flex items-center justify-between mb-2\">
+        <div className=\"text-sm\"><strong>{t.persona} {activePersona+1}:</strong> {p.role}</div>
+        <div className=\"text-sm\">{activePersona+1}/3</div>
+      </div>
+      <div className=\"grid gap-3\">
+        {p.questions.map((q,qi)=> (
+          <div key={qi}>
+            <label className=\"text-sm block mb-1\">{t.questions} {qi+1}</label>
+            <div className=\"text-sm mb-1 italic\">{q}</div>
+            <textarea className=\"border rounded p-2 w-full\" rows={3} placeholder={t.answer} value={p.answers[qi]} onChange={(e)=>updateAnswer(qi, e.target.value)}></textarea>
+          </div>
+        ))}
+        <textarea className=\"border rounded p-2 w-full\" rows={3} placeholder={t.notes} value={p.notes} onChange={(e)=>updateNotes(e.target.value)}></textarea>
+        <input className=\"border rounded p-2 w-full\" placeholder={t.sentiment} value={p.sentiment} onChange={(e)=>updateSentiment(e.target.value)} />
+      </div>
+      <div className=\"mt-4 flex justify-between\">
+        <button className=\"btn\" onClick={()=> setActivePersona(Math.max(0, activePersona-1))} disabled={activePersona===0}>{t.previousPersona}</button>
+        {activePersona<2 ? (
+          <button className=\"btn-primary\" onClick={()=> setActivePersona(Math.min(2, activePersona+1))} disabled={!allAnswered}>{t.nextPersona}</button>
+        ) : (
+          <button className=\"btn-primary\" onClick={()=> alert(\"All interviews complete. Click Synthesize insights to generate a summary.\")} disabled={!allAnswered}>{t.finishInterviews}</button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function NavButtons({t, current, setCurrent, canNext}){
+  return (
+    <div className=\"mt-4 flex justify-between no-print\">
+      <button className=\"btn\" onClick={()=> setCurrent(Math.max(0, current-1))}>{t.back}</button>
+      <button className=\"btn-primary\" onClick={()=> setCurrent(current+1)} disabled={!canNext}>{t.next}</button>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById(\"root\")).render(<App />);
+  </script></body></html>
